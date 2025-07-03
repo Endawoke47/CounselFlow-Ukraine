@@ -1,0 +1,12 @@
+{
+  "extends": "../shared/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDirs": [
+      "./src", "../../1pd-be/src"],
+    "types": ["@playwright/test", "@types/node"]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

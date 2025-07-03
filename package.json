@@ -1,0 +1,32 @@
+{
+  "name": "1pd",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "1pd-fe",
+    "1pd-be",
+    "1pd-types"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "clean": "rm -rf node_modules && npm run clean:all",
+    "clean:all": "npm run clean:types && npm run clean:be && npm run clean:fe && rm -rf node_modules",
+    "clean:types": "cd 1pd-types && npm run clean",
+    "clean:be": "cd 1pd-be && npm run clean",
+    "clean:fe": "cd 1pd-fe && rm -rf dist node_modules",
+    "clean:turbo": "turbo run clean"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "turbo": "latest"
+  },
+  "packageManager": "npm@10.2.4",
+  "dependencies": {
+    "@hookform/resolvers": "^5.0.1"
+  }
+}
