@@ -16,9 +16,10 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('1pd')
-    .setDescription('1pd API description')
+    .setTitle('CounselFlow Ukraine API')
+    .setDescription('Legal Management System API for Ukrainian Legal Professionals')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory, {
@@ -47,31 +48,30 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new CatchEverythingFilter(httpAdapterHost));
 
-  // TEMPORARY: Allow all origins, headers, and methods
+  // CORS Configuration - Secure and Environment-based
+  const allowedOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',')
+    : process.env.NODE_ENV === 'production'
+    ? [process.env.FRONTEND_URL || 'https://counselflow-ukraine.com']
+    : [
+        'http://localhost:3000',
+        'http://localhost:4000', 
+        'http://localhost:5173',
+        'http://localhost:8080'
+      ];
+
   app.enableCors({
-    // origin:
-    //   process.env.NODE_ENV === 'production'
-    //     ? [process.env.APP_URL || 'http://localhost:3000']
-    //     : [
-    //         'http://localhost:3000',
-    //         'http://localhost:4000',
-    //         'http://localhost:5173',
-    //       ], // TEMPORARILY COMMENTED OUT
-    // --- TEMPORARY HACK: allow all origins ---
-    origin: '*',
-    // --- END TEMPORARY HACK ---
+    origin: allowedOrigins,
     credentials: true,
-    // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // TEMPORARILY COMMENTED OUT
-    // allowedHeaders: [
-    //   'Content-Type',
-    //   'Authorization',
-    //   'X-Requested-With',
-    //   'Accept',
-    // ], // TEMPORARILY COMMENTED OUT
-    // --- TEMPORARY HACK: allow all methods and headers ---
-    methods: '*',
-    allowedHeaders: '*',
-    // --- END TEMPORARY HACK ---
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'X-Auth-Token'
+    ],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     maxAge: 3600,
   });

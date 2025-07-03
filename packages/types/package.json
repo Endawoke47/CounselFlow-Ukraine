@@ -1,5 +1,5 @@
 {
-  "name": "1pd-types",
+  "name": "@counselflow/types",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -12,10 +12,10 @@
     "lint": "npx eslint ./src",
     "lint:fix": "npx eslint ./src --fix"
   },
-  "keywords": [],
-  "author": "",
-  "description": "Shared TypeScript types for 1PD",
-  "license": "UNLICENSED",
+  "keywords": ["typescript", "types", "legal", "counselflow"],
+  "author": "CounselFlow Team",
+  "description": "Shared TypeScript types for CounselFlow Ukraine",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.25.1",

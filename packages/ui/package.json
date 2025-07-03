@@ -1,0 +1,32 @@
+{
+  "name": "@counselflow/ui",
+  "version": "1.0.0",
+  "description": "Shared UI components for CounselFlow Ukraine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Endawoke47/CounselFlow-Ukraine.git"
+  },
+  "keywords": ["react", "ui", "components", "legal", "counselflow"],
+  "author": "CounselFlow Team",
+  "license": "MIT",
+  "private": true,
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.57.0"
+  }
+}
