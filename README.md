@@ -1,37 +1,30 @@
-# 1pd-v2
-Version 2 of 1PD
+## Available Scripts
 
+To install dependencies
 
-# Docker
+### `npm install --legacy-peer-deps`
 
-## Prerequisites
+In the project directory, you can run:
 
-- create aws cli profile with the name `1pd-staging`
+### `npm run start`
 
-## Docker frontend
+Runs the app in the development mode.\
+Open [http://localhost:4000](http://localhost:4000) to view it in the browser.
 
-- `cd gitRoot`
-- `aws ecr get-login-password --region eu-west-1 --profile 1pd-staging | docker login --username AWS --password-stdin 127214158365.dkr.ecr.eu-west-1.amazonaws.com`
-- `docker buildx build --platform=linux/amd64 -t 127214158365.dkr.ecr.eu-west-1.amazonaws.com/1pd-fe:$(git rev-parse HEAD) -f Dockerfile.1pd-fe --build-arg VITE_API_URL=/api --build-arg VITE_ENV=stage --progress=plain .`
-- `docker push 127214158365.dkr.ecr.eu-west-1.amazonaws.com/1pd-fe:$(git rev-parse HEAD)`
+The page will reload if you make edits.\
+You will also see any lint errors in the console.
 
+### `npm test`
 
-## Docker backend
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### Build
+### `npm run build`
 
-- `cd gitRoot`
-- `aws ecr get-login-password --region eu-west-1 --profile 1pd-staging | docker login --username AWS --password-stdin 127214158365.dkr.ecr.eu-west-1.amazonaws.com`
-- `docker buildx build --platform=linux/amd64 -t 127214158365.dkr.ecr.eu-west-1.amazonaws.com/1pd-be:$(git rev-parse HEAD) -f Dockerfile.1pd-be --progress=plain .`
-- `docker push 127214158365.dkr.ecr.eu-west-1.amazonaws.com/1pd-be:$(git rev-parse HEAD)`
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-### Run
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-```
-docker run -d \
-  --name 1pd-be \
-  --restart \
-  --env-file ./1pd-be/.env \
-  -p 5005:5005 \
-  1pd-be:$(git rev-parse HEAD)
-```
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.

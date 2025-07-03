@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+cd 1pd-fe
+npm run pre-commit
+
+if [ $? -ne 0 ]; then
+  echo "ESLint found issues that must be fixed before committing."
+  exit 1
+fi
+
+
+exit 0

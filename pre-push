@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+cd 1pd-fe
+npm run pre-push
+
+if [ $? -ne 0 ]; then
+  echo "Typescript found issues that must be fixed before pushing."
+  exit 1
+fi
+
+exit 0
