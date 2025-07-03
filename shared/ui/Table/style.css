@@ -1,0 +1,20 @@
+.ag-header {
+  background-color: lightgray;
+  min-height: 40px!important;
+}
+
+.ag-header-row {
+  min-height: 40px!important;
+}
+
+.ag-header-cell {
+  min-height: 40px!important;
+  border: darkgray solid 1px;
+}
+
+.ag-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: darkgray solid 1px;
+}
