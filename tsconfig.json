@@ -1,25 +1,22 @@
 {
   "extends": "../shared/tsconfig.base.json",
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["dom", "dom.iterable", "esnext"], // Include DOM and modern JavaScript libraries
-    "skipLibCheck": true, // Skip type checking of declaration files
-    "strict": true, // Enable all strict type-checking options
-    "forceConsistentCasingInFileNames": true, // Enforce consistent casing in imports
-    "noEmit": true, // Do not emit compiled files
-    "esModuleInterop": true, // Enable interoperability for ES modules
-    "module": "esnext", // Use ESNext module resolution
-    "moduleResolution": "node", // Use Node.js-style module resolution
-    "resolveJsonModule": true, // Allow importing JSON files
-    "isolatedModules": true, // Ensure each file can be transpiled in isolation
-    "jsx": "react-jsx", // Use the React JSX transform
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"],
-      "@1pd/types/*": ["../1pd-types/*"]
-    },
-    "types": ["node", "jest", "@testing-library/jest-dom", "vite/client"]
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "skipLibCheck": true
   },
-  "include": ["src"], // Include all files in the "src" folder
-  "exclude": ["node_modules", "build"] // Exclude node_modules and build folders
+  "include": ["src/**/*", "e2e/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
