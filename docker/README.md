@@ -1,109 +1,162 @@
-# 1PD Frontend Docker Setup for AWS Amplify
+# 1PD Backend Docker Setup
 
-This directory contains the production Docker configuration for the 1PD frontend application, optimized for AWS Amplify deployment.
-
-## Docker Build for Local Testing
-
-While AWS Amplify will handle the build and deployment process in production, you can use this Dockerfile for local testing:
+## Build the Docker Image
 
 ```bash
-cd 1pd-fe
-docker build -t 1pd-fe:production -f docker/Dockerfile.production .
+cd 1pd-be
+docker build -t 1pd-be:production -f docker/Dockerfile.production .
 ```
 
-## Extracting Build for Manual Deployment
+## Deploy to AWS Fargate
 
-If you need to extract the build artifacts for manual deployment to AWS Amplify:
+### 1. Push to ECR
 
 ```bash
-# Build the image
-docker build -t 1pd-fe:production -f docker/Dockerfile.production .
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 
-# Create a container from the image
-docker create --name temp-container 1pd-fe:production
+# Create repository (if needed)
+aws ecr create-repository --repository-name 1pd-be --region us-east-1
 
-# Copy the build directory from the container to your local machine
-docker cp temp-container:/build ./build
-
-# Remove the temporary container
-docker rm temp-container
+# Tag & push image
+docker tag 1pd-be:production YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/1pd-be:latest
+docker push YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/1pd-be:latest
 ```
 
-## AWS Amplify Deployment
+### 2. Create Task Definition
 
-For AWS Amplify deployment, you typically don't need to use this Dockerfile at all. Instead:
+- ECS → Task Definitions → Create new Task Definition
+- Fargate launch type
+- Task size: 1 vCPU, 2GB memory
+- Container:
+  - Image: YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/1pd-be:latest
+  - Port mappings: 3000:3000
+  - Environment variables: Add required variables (see below)
 
-1. Connect your GitHub repository to AWS Amplify
-2. Configure your build settings in the Amplify console:
+### 3. Create ECS Service
 
-```yaml
-# Example amplify.yml configuration
-version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm ci
-    build:
-      commands:
-        - echo "REACT_APP_API_URL=$API_URL" >> .env.production
-        - echo "REACT_APP_LOGGER_URL=$LOGGER_URL" >> .env.production
-        - echo "REACT_APP_ENV=$APP_ENV" >> .env.production
-        - npm run build
-  artifacts:
-    baseDirectory: build
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
+- ECS → Clusters → Create Service
+- Launch type: Fargate
+- Number of tasks: 1
+- Networking: Private subnet, allow port 3000 from ALB
+- Load balancer: Add to ALB, health check path: /health
+
+### 4. Set up Secrets (optional)
+
+```bash
+# Create secrets
+aws secretsmanager create-secret --name 1pd/db-credentials \
+  --secret-string '{"POSTGRES_USER":"username","POSTGRES_PASSWORD":"password"}'
+
+# Reference in Task Definition
+"secrets": [
+  {
+    "name": "POSTGRES_USER",
+    "valueFrom": "arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT_ID:secret:1pd/db-credentials:POSTGRES_USER::"
+  }
+]
 ```
 
-3. Configure environment variables in the Amplify console:
-   - API_URL
-   - LOGGER_URL
-   - APP_ENV
+## Required Environment Variables
 
-## Environment Variables
+### Database
 
-The following environment variables can be configured in AWS Amplify:
+- `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`,
+  `POSTGRES_DATABASE`
+- `RUN_MIGRATIONS` (set to "true" to run migrations)
 
-- `API_URL`: API endpoint URL (becomes `REACT_APP_API_URL` during build)
-- `LOGGER_URL`: Logger service URL (becomes `REACT_APP_LOGGER_URL` during build)
-- `APP_ENV`: Environment name - production, staging, etc. (becomes `REACT_APP_ENV` during build)
+### Auth0
 
-## Understanding the Dockerfile
+- `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_AUDIENCE`
+- `JWT_SECRET`
 
-The Dockerfile contains two stages:
+### Admin
 
-1. **Builder Stage**: Compiles the React application
-   - Uses Node.js 22 LTS (codename 'Jod') for a lightweight, high-performance build environment
-   - Installs dependencies and builds the application
-   - Provides long-term support until April 2027
+- `ADMIN_COMPANY_NAME`, `ADMIN_COMPANY_USER`, `ADMIN_COMPANY_PASS`
 
-2. **Static Assets Stage**: Contains only the built assets
-   - Uses the empty `scratch` image - contains no OS, just files
-   - Only includes the production-ready static files
-   - Perfect for extracting to deploy to AWS Amplify
+### Upload Storage
 
-## Node.js Version
+- `UPLOADS_STORAGE_PROVIDER` ('local' or 's3')
+- `APP_URL` (required for local storage)
 
-We use Node.js 22 LTS (codename 'Jod') for the build process, which provides:
+### S3 Storage (if using s3)
 
-- **Performance improvements** for faster builds and enhanced JavaScript execution
-- **Active LTS support** until October 2025
-- **Maintenance support** until April 2027
-- **Enhanced ECMAScript support** for modern JavaScript features
-- **Improved developer experience** with better error messages and debugging
+- `UPLOADS_AWS_REGION`, `UPLOADS_AWS_ACCESS_KEY_ID`
+- `UPLOADS_AWS_SECRET_ACCESS_KEY`, `UPLOADS_AWS_S3_DEFAULT_BUCKET_NAME`
 
-## AWS Amplify Features
+## Docker Optimizations
 
-AWS Amplify provides several advantages:
+Our Docker setup is optimized for both development and production:
 
-- **CI/CD Pipeline**: Automatic builds and deployments
-- **Preview Environments**: Preview feature branches
-- **Global CDN**: Fast content delivery worldwide
-- **Custom Domains**: Easy domain management
-- **Environment Variables**: Simple configuration
-- **Authentication**: Integration with AWS Cognito
-- **Monitoring**: Performance metrics and logs 
+1. **Multi-stage builds**: Reduces final image size by separating build and
+   runtime environments
+2. **Layer caching**: Package files are copied before source code to leverage
+   Docker's caching mechanism
+3. **Security enhancements**:
+   - Non-root user for running the application
+   - Minimal required dependencies in the production image
+   - Sensitive files excluded via `.dockerignore`
+4. **Build dependencies**:
+   - Build tools are only included when necessary for native compilation
+   - The default build doesn't include extra tools to keep images small
+   - If native compilation is needed (e.g., for `pg` or cryptographic packages),
+     tools can be added to the Dockerfile
+5. **Node.js version**:
+   - Using Node.js 22 LTS (codename 'Jod') for improved performance and extended
+     support
+   - Active LTS support until October 21, 2025
+   - Maintenance support until April 30, 2027
+   - Benefits from latest security updates and performance improvements
+
+## Health Checks
+
+The application uses NestJS Terminus for comprehensive health monitoring:
+
+- **Database Connection**: Verifies the PostgreSQL connection is active
+- **Disk Storage**: Monitors disk usage (alerts at 90% usage)
+- **Memory Usage**: Tracks heap and RSS memory consumption
+- **Response Format**: Detailed JSON with status of all system components
+
+Health checks are accessible at `/health` and integrated with Docker:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+```
+
+AWS Fargate uses this health check to monitor container status and automatically
+restart if unhealthy.
+
+## Scale Later (when needed)
+
+```bash
+# View service details
+aws ecs describe-services --cluster your-cluster --services 1pd-be-service
+
+# Update service to scale up
+aws ecs update-service --cluster your-cluster --service 1pd-be-service --desired-count 2
+```
+
+## Local Testing: Run the Backend Container with Host Database
+
+To test the backend container locally and connect to a PostgreSQL database
+running on your host machine, use the following command:
+
+```sh
+docker run --env-file 1pd-be/.env \
+  -e POSTGRES_HOST=host.docker.internal \
+  -d -p 5005:5005 \
+  --name 1pd-be-test \
+  127214158365.dkr.ecr.eu-west-1.amazonaws.com/1pd-be:latest
+```
+
+- `--env-file 1pd-be/.env` loads environment variables from your `.env` file.
+- `-e POSTGRES_HOST=host.docker.internal` ensures the container can connect to a
+  database running on your host (works on Mac/Windows; for Linux, use your
+  host's IP address).
+- `-d` runs the container in detached mode.
+- `-p 5005:5005` maps the container's port 5005 to your host.
+- `--name 1pd-be-test` names the container for easy reference.
+- The last argument is your backend image tag.
+
+**Note:** Ensure your database is accessible from the container and the
+credentials in `.env` match your local database setup.

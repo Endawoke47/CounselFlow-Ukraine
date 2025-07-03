@@ -1,0 +1,87 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start All Projects",
+      "dependsOn": [
+        "Start Types",
+        "Start Backend",
+        "Start Frontend"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Terminate All Projects",
+      "type": "shell",
+      "command": "pkill -f 'node.*(vite|nest|tsc)'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Types",
+      "type": "shell",
+      "command": "cd 1pd-types && npm run dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Terminate Types",
+      "type": "shell",
+      "command": "pkill -f 'tsc.*1pd-types'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Backend",
+      "type": "shell",
+      "command": "cd 1pd-be && npm run dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Terminate Backend",
+      "type": "shell",
+      "command": "pkill -f 'node.*nest.*1pd-be'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Frontend",
+      "type": "shell",
+      "command": "cd 1pd-fe && npm run dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Terminate Frontend",
+      "type": "shell",
+      "command": "pkill -f 'node.*vite.*1pd-fe'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}

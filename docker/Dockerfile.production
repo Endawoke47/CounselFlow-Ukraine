@@ -1,0 +1,59 @@
+# Build Stage
+FROM node:22-alpine as builder
+
+# Set working directory for the entire monorepo
+WORKDIR /monorepo
+
+# Copy the entire monorepo first to access shared types
+COPY . .
+
+# Install dependencies for the entire monorepo
+# Standard npm doesn't support selective installation with --filter
+RUN npm ci
+
+# Build the application (can access shared types and packages now)
+RUN npm run build --filter=1pd-types --filter=1pd-be 
+
+# Production Stage
+FROM node:22-alpine
+
+# Set environment variables
+# Use ARG for build-time variables with defaults
+ARG NODE_ENV=production
+ARG PORT=5005
+
+# Set as environment variables that can be overridden at runtime
+ENV NODE_ENV=${NODE_ENV}
+ENV PORT=${PORT}
+
+# Create a non-root user and install wget for health checks
+RUN apk --no-cache add wget && \
+    addgroup -g 1001 -S nodejs && \
+    adduser -S -u 1001 -G nodejs nodejs
+
+# Set working directory
+WORKDIR /app
+
+# Copy only the built app from build stage
+COPY --from=builder --chown=nodejs:nodejs /monorepo/1pd-be/dist /app/dist
+COPY --from=builder --chown=nodejs:nodejs /monorepo/1pd-be/package*.json /app/
+
+# Install dependencies
+RUN npm ci --omit=dev
+COPY --from=builder --chown=nodejs:nodejs /monorepo/1pd-types /app/node_modules/1pd-types
+
+# Create uploads directory and set correct ownership
+RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
+
+# Switch to non-root user to follow the principle of least privilege
+USER nodejs
+
+# Expose the application port
+EXPOSE ${PORT}
+
+# Add health check using Terminus
+# This checks database connection, disk space, and memory usage
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD wget -qO- http://127.0.0.1:${PORT}/health || exit 1
+
+# Start the application
+CMD ["node", "dist/main"] 

@@ -1,0 +1,18 @@
+{
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "workbench.editor.tabSizing": "shrink",
+  "cSpell.words": ["1pd"],
+  "editor.tabSize": 2,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "eslint.format.enable": true,
+  "prettier.requireConfig": true
+}

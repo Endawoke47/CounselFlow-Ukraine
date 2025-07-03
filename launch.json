@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug NestJS API",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug"],
+      "sourceMaps": true,
+      "envFile": "${workspaceFolder}/1pd-be/.env",
+      "cwd": "${workspaceFolder}/1pd-be",
+      "console": "integratedTerminal",
+      "protocol": "inspector",
+      "restart": true,
+      "port": 9229,
+      "autoAttachChildProcesses": true
+    }
+  ]
+}
